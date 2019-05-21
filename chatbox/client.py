@@ -13,9 +13,9 @@ def listening(cs):
         if cs in rlist:
             try:
                 # 打印从服务器收到的数据
-                print cs.recv(1024)
+                print (cs.recv(1024))
             except socket.error:
-                print "socket is error"
+                print ("socket is error")
                 exit()
 
 # speak
@@ -24,13 +24,13 @@ def speak(cs):
         try:
             data = raw_input()
         except Exception as e:
-            print r"can't input"
+            print (r"can't input")
             exit()
-        # if data == "exit":
-        #     cs.close()
-        #     break
         try:
             cs.send(data)
+            if data == "exit":
+                cs.close()
+                exit()
         except Exception as e:
             exit()
 

@@ -39,7 +39,7 @@ def newConnection(ss):
             if other != client_conn and other != ss:
                 other.send(fd_name[client_conn]+" joined the chatroom!")
     except Exception as e:
-        print e
+        print (e)
 
 def closeConnection():
     pass
@@ -47,13 +47,18 @@ def closeConnection():
 def run():
     ss = serverInit()
     inputs.append(ss)
-    print "server is running..."
+    print ("server is running...")
     while True:
         # rlist,wlist,elist = select.select(inputs, [], inputs,100)   # 如果只是服务器开启,100s之内没有client连接,则也会超时关闭
+        # 参数： 可接受四个参数（前三个必须）
+        # rlist: wait until ready for reading
+        # wlist: wait until ready for writing
+        # xlist: wait for an “exceptional condition”
+        # timeout: 超时时间
         rlist,wlist,elist = select.select(inputs, [], [])
         # 当没有可读fd时, 表示server错误,退出服务器
         if not rlist:
-            print "timeout..."
+            print ("timeout...")
             ss.close()  # 关闭 server socket
             break
         for r in rlist:
@@ -62,8 +67,12 @@ def run():
             else:          # 表示一个client连接上有数据到达服务器
                 disconnect = False
                 try:
-                    data = r.recv(1024)  #接收data
-                    data = fd_name[r] + " : "+ data  # 确定客户端昵称
+                    data = r.recv(1024)  #接收data                  
+                    if data == "exit":
+                        data = fd_name[r] + " leaved the room"
+                        disconnect = True
+                    else:
+                        data = fd_name[r] + " : "+ data  # 确定客户端昵称
                 except socket.error:
                     data = fd_name[r] + " leaved the room"
                     disconnect = True
@@ -71,25 +80,25 @@ def run():
                     pass
                 if disconnect:
                     inputs.remove(r)
-                    print data
+                    print (data)
                     for other in inputs:
                         if other != ss and other != r:  #不发生到服务器和已经断开的连接
                             try:
                                 other.send(data)
                             except Exception as e:
-                                print e
+                                print (e)
                             else:
                                 pass
                     # 除名
                     del fd_name[r]
                 else:
-                    print data  # 在服务器显示client发送的数据
+                    print (data)  # 在服务器显示client发送的数据
                     # 向其他成员(连接)发送相同的信息
                     for other in inputs:
                         if other != ss and other != r:
                             try:
                                 other.send(data)
                             except Exception as e:
-                                print e
+                                print (e)
 if __name__ == "__main__":
     run()
